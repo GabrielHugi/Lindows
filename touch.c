@@ -23,6 +23,8 @@ int main (int argc, char** argv) {
         unsigned c:1;
         unsigned t:1;
         unsigned h:1;
+        // maybe im stupid but it seems to me that h for windows is pratically just a and m so I will ignore, but if that is stupid please tell me 
+        // for this reason will make it work as help ig
         unsigned r:1;
         unsigned d:1;
         unsigned any:1;
@@ -83,6 +85,11 @@ int main (int argc, char** argv) {
     }
     // now the real deal
     for (int i = 1; i < argc; i++) {
+            // help
+            if (argc == 1 || modifiers.h == 1) {
+                printf("help")
+                return 1;
+            }
             if (modifiers.any == 0) {
                 for (int i = 1; i < argc; i++) {
                     fileptr = fopen(argv[i], "w");
@@ -206,11 +213,32 @@ int main (int argc, char** argv) {
                 }
                 utime(argv[pos+1], &sendtime);
             }
-            if (modifiers.h == 1) {
-                
-            }
             if (modifiers.r == 1) {
-                
+                for (int i = 1+modnum; i < argc; i++) {
+                    fileptr = fopen(argv[i], "r");
+                    if (fileptr == NULL && modifiers.c == 0) { 
+                        fileptr = fopen(argv[i], "w");
+                    }
+                    if (fileptr != NULL) {
+                        fclose(fileptr);
+                        struct stat tm;
+                        struct utimbuf newtime;
+                        stat(argv[i], &tm);
+                        if (modifiers.a == 1) {
+                            newtime.actime = time(NULL);
+                            newtime.modtime = tm.st_mtime;
+                        }
+                        if (modifiers.m == 1) {
+                            newtime.actime = tm.st_atime;
+                            newtime.modtime = time(NULL);
+                        }
+                        if (modifiers.m == 1 && modifiers.a ==1) {
+                            newtime.actime = tm.st_atime;
+                            newtime.modtime = tm.st_mtime;
+                        }
+                        utime(argv[i], &newtime);
+                    }
+                }
             }
             if (modifiers.d == 1) {
                 
