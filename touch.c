@@ -87,7 +87,7 @@ int main (int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
             // help
             if (argc == 1 || modifiers.h == 1) {
-                printf("help")
+                printf("help");
                 return 1;
             }
             if (modifiers.any == 0) {
@@ -117,8 +117,8 @@ int main (int argc, char** argv) {
                             newtime.modtime = time(NULL);
                         }
                         if (modifiers.m == 1 && modifiers.a ==1) {
-                            newtime.actime = tm.st_atime;
-                            newtime.modtime = tm.st_mtime;
+                            newtime.actime = time(NULL);
+                            newtime.modtime = time(NULL);
                         }
                         utime(argv[i], &newtime);
                     }
@@ -214,34 +214,24 @@ int main (int argc, char** argv) {
                 utime(argv[pos+1], &sendtime);
             }
             if (modifiers.r == 1) {
-                for (int i = 1+modnum; i < argc; i++) {
-                    fileptr = fopen(argv[i], "r");
+                if (argc == 4) {
+                    fileptr = fopen(argv[3], "r");
                     if (fileptr == NULL && modifiers.c == 0) { 
-                        fileptr = fopen(argv[i], "w");
+                        fileptr = fopen(argv[3], "w");
                     }
                     if (fileptr != NULL) {
                         fclose(fileptr);
                         struct stat tm;
                         struct utimbuf newtime;
-                        stat(argv[i], &tm);
-                        if (modifiers.a == 1) {
-                            newtime.actime = time(NULL);
-                            newtime.modtime = tm.st_mtime;
-                        }
-                        if (modifiers.m == 1) {
-                            newtime.actime = tm.st_atime;
-                            newtime.modtime = time(NULL);
-                        }
-                        if (modifiers.m == 1 && modifiers.a ==1) {
-                            newtime.actime = tm.st_atime;
-                            newtime.modtime = tm.st_mtime;
-                        }
+                        stat(argv[2], &tm);
+                        newtime.actime = tm.st_atime;
+                        newtime.modtime = tm.st_mtime;
                         utime(argv[i], &newtime);
                     }
                 }
             }
             if (modifiers.d == 1) {
-                
+                // Im almost sure you can't do this shit on windows
             }
         }
     }
