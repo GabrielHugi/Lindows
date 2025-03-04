@@ -9,6 +9,7 @@
 #include <utime.h>
 #include <sys/stat.h>
 
+
 /*
 Linux terminal command "touch" ported to windows
 Tell me if I missed some feature
@@ -111,15 +112,26 @@ int main (int argc, char** argv) {
             if (modnum == 1 && modifiers.h == 1) {
                 // check https://learn.microsoft.com/en-us/windows/win32/shell/links
                 // and be sure to remember to implement -h in -t and -a and -d and etc and do a bunch of tests
-                fileptr = fopen(argv[2], "r");
-                if (fileptr != NULL) { 
-                    fclose(fileptr);
-                    struct utimbuf newtime;
-                    newtime.actime = time(NULL);
-                    newtime.modtime = time(NULL);
-                    utime(argv[2], &newtime);
-                }
-                return 0;
+                //https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+                /*
+                https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle
+                https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileinformationbyhandle
+                https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ne-minwinbase-file_info_by_handle_class
+                https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_basic_info
+                https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information
+                                
+                */
+                HANDLE file = CreateFileA(
+                    argv[2],
+                    GENERIC_READ,
+                    FILE_SHARE_READ,
+                    NULL,
+                    OPEN_EXISTING,
+                    FILE_ATTRIBUTE_READONLY,
+                    NULL
+                );
+                if (file == INVALID_HANDLE_VALUE) return 1;
+
             }
 
             if (modifiers.h == 1 && modifiers.c == 1 && modnum == 2) {
