@@ -1,4 +1,6 @@
+#define _WIN32_WINNT 0x0600
 #include <windows.h>
+#include <fileapi.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -23,8 +25,7 @@ int main (int argc, char** argv) {
         unsigned c:1;
         unsigned t:1;
         unsigned h:1;
-        // maybe im stupid but it seems to me that h for windows is pratically just a and m so I will ignore, but if that is stupid please tell me 
-        // for this reason will make it work as help ig
+        // refer to https://www.hostinger.com/tutorials/linux-touch-command (msg to myself)
         unsigned r:1;
         unsigned d:1;
         unsigned any:1;
@@ -84,9 +85,10 @@ int main (int argc, char** argv) {
         }
     }
     // now the real deal
+    // wtf does this for loop do? imma prob take thsi bad boy down later
     for (int i = 1; i < argc; i++) {
             // help
-            if (argc == 1 || modifiers.h == 1) {
+            if (argc == 1) {
                 printf("help");
                 return 1;
             }
@@ -95,6 +97,41 @@ int main (int argc, char** argv) {
                     fileptr = fopen(argv[i], "w");
                     fclose(fileptr);
                 }
+            }
+            if (modifiers.c == 1 && modnum == 1) {
+                fileptr = fopen(argv[2], "r");
+                if (fileptr != NULL) { 
+                    fclose(fileptr);
+                    struct utimbuf newtime;
+                    newtime.actime = time(NULL);
+                    newtime.modtime = time(NULL);
+                    utime(argv[2], &newtime);
+                }
+            }
+            if (modnum == 1 && modifiers.h == 1) {
+                // check https://learn.microsoft.com/en-us/windows/win32/shell/links
+                // and be sure to remember to implement -h in -t and -a and -d and etc and do a bunch of tests
+                fileptr = fopen(argv[2], "r");
+                if (fileptr != NULL) { 
+                    fclose(fileptr);
+                    struct utimbuf newtime;
+                    newtime.actime = time(NULL);
+                    newtime.modtime = time(NULL);
+                    utime(argv[2], &newtime);
+                }
+                return 0;
+            }
+
+            if (modifiers.h == 1 && modifiers.c == 1 && modnum == 2) {
+                fileptr = fopen(argv[2], "r");
+                if (fileptr != NULL) { 
+                    fclose(fileptr);
+                    struct utimbuf newtime;
+                    newtime.actime = time(NULL);
+                    newtime.modtime = time(NULL);
+                    utime(argv[2], &newtime);
+                }
+                return 0;
             }
             else {
             if ((modifiers.a == 1 && modifiers.t != 1) || (modifiers.m == 1 && modifiers.t != 1)) {
