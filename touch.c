@@ -1,6 +1,5 @@
 #define _WIN32_WINNT 0x0600
 #include <windows.h>
-#include <fileapi.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -8,6 +7,7 @@
 #include <time.h>
 #include <utime.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 
 /*
@@ -109,29 +109,39 @@ int main (int argc, char** argv) {
                     utime(argv[2], &newtime);
                 }
             }
-            if (modnum == 1 && modifiers.h == 1) {
-                // check https://learn.microsoft.com/en-us/windows/win32/shell/links
-                // and be sure to remember to implement -h in -t and -a and -d and etc and do a bunch of tests
-                //https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+            if (modifiers.h == 1 && modifiers.t != 1) {
                 /*
-                https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle
-                https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileinformationbyhandle
-                https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ne-minwinbase-file_info_by_handle_class
-                https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_basic_info
-                https://learn.microsoft.com/en-us/windows/win32/api/fileapi/ns-fileapi-by_handle_file_information
-                                
+                https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+                https://doc.embedded-wizard.de/handle-type
+                https://stackoverflow.com/questions/23621778/how-to-find-target-of-symbolic-link-in-windows-c-program
+                https://devblogs.microsoft.com/oldnewthing/20100212-00/?p=14963
+                https://superuser.com/questions/496092/view-a-list-of-symbolic-links-on-system
+                https://cboard.cprogramming.com/c-programming/126660-distinguish-symbolic-link-file-stat-function.html
+                                                
                 */
-                HANDLE file = CreateFileA(
-                    argv[2],
-                    GENERIC_READ,
-                    FILE_SHARE_READ,
-                    NULL,
-                    OPEN_EXISTING,
-                    FILE_ATTRIBUTE_READONLY,
-                    NULL
-                );
-                if (file == INVALID_HANDLE_VALUE) return 1;
-
+                for (int i = 1+modnum; i < argc; i++) {
+                    fileptr = fopen(argv[i], "r");
+                    if (fileptr != NULL) {
+                        fclose(fileptr);
+                        struct _stat tm;
+                        struct utimbuf newtime;
+                        _stat(argv[i], &tm);
+                        if (modifiers.a == 1) {
+                            newtime.actime = time(NULL);
+                            newtime.modtime = tm.st_mtime;
+                        }
+                        if (modifiers.m == 1) {
+                            newtime.actime = tm.st_atime;
+                            newtime.modtime = time(NULL);
+                        }
+                        if ((modifiers.m == 1 && modifiers.a == 1) || (modifiers.m == 0 && modifiers.a == 0)) {
+                            newtime.actime = time(NULL);
+                            newtime.modtime = time(NULL);
+                        }
+                        utime(argv[i], &newtime);   
+                    }
+                }
+                return 0;
             }
 
             if (modifiers.h == 1 && modifiers.c == 1 && modnum == 2) {
