@@ -60,5 +60,5 @@ int main (int argc, char** argv) {
         GetCurrentDirectory(len, dir);
         ls(dir);
     }
-    ls(argv[2]);
+    ls(argv[1]);
 }
